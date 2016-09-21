@@ -38,7 +38,7 @@ public protocol WebSocketPongDelegate: class {
     func websocketDidReceivePong(socket: WebSocket, data: Data?)
 }
 
-public class WebSocket : NSObject, StreamDelegate {
+open class WebSocket : NSObject, StreamDelegate {
     
     enum OpCode : UInt8 {
         case continueFrame = 0x0
@@ -64,7 +64,7 @@ public class WebSocket : NSObject, StreamDelegate {
         case messageTooBig          = 1009
     }
 
-    public static let ErrorDomain = "WebSocket"
+    open static let ErrorDomain = "WebSocket"
 
     enum InternalErrorCode: UInt16 {
         // 0-999 WebSocket status codes not used
@@ -72,7 +72,7 @@ public class WebSocket : NSObject, StreamDelegate {
     }
 
     // Where the callback is executed. It defaults to the main UI thread queue.
-    public var callbackQueue = DispatchQueue.main
+    open var callbackQueue = DispatchQueue.main
 
     var optionalProtocols: [String]?
 
@@ -111,32 +111,32 @@ public class WebSocket : NSObject, StreamDelegate {
 
     /// Responds to callback about new messages coming in over the WebSocket
     /// and also connection/disconnect messages.
-    public weak var delegate: WebSocketDelegate?
+    open weak var delegate: WebSocketDelegate?
 
     /// Receives a callback for each pong message recived.
-    public weak var pongDelegate: WebSocketPongDelegate?
+    open weak var pongDelegate: WebSocketPongDelegate?
 
 
     // MARK: - Block based API.
 
-    public var onConnect: ((Void) -> Void)?
-    public var onDisconnect: ((NSError?) -> Void)?
-    public var onText: ((String) -> Void)?
-    public var onData: ((Data) -> Void)?
-    public var onPong: ((Data?) -> Void)?
+    open var onConnect: ((Void) -> Void)?
+    open var onDisconnect: ((NSError?) -> Void)?
+    open var onText: ((String) -> Void)?
+    open var onData: ((Data) -> Void)?
+    open var onPong: ((Data?) -> Void)?
 
-    public var headers = [String: String]()
-    public var voipEnabled = false
-    public var disableSSLCertValidation = false
-    public var security: SSLSecurity?
-    public var enabledSSLCipherSuites: [SSLCipherSuite]?
-    public var origin: String?
-    public var timeout = 5
-    public var isConnected: Bool {
+    open var headers = [String: String]()
+    open var voipEnabled = false
+    open var disableSSLCertValidation = false
+    open var security: SSLSecurity?
+    open var enabledSSLCipherSuites: [SSLCipherSuite]?
+    open var origin: String?
+    open var timeout = 5
+    open var isConnected: Bool {
         return connected
     }
     
-    public var currentURL: URL { return url }
+    open var currentURL: URL { return url }
 
     // MARK: - Private
 
@@ -180,7 +180,7 @@ public class WebSocket : NSObject, StreamDelegate {
     /**
      Connect to the WebSocket server on a background thread.
      */
-    public func connect() {
+    open func connect() {
         guard !isConnecting else { return }
         didDisconnect = false
         isConnecting = true
@@ -198,7 +198,7 @@ public class WebSocket : NSObject, StreamDelegate {
      - Parameter forceTimeout: Maximum time to wait for the server to close the socket.
      - Parameter closeCode: The code to send on disconnect. The default is the normal close code for cleanly disconnecting a webSocket.
     */
-    public func disconnect(forceTimeout: TimeInterval? = nil, closeCode: UInt16 = CloseCode.normal.rawValue) {
+    open func disconnect(forceTimeout: TimeInterval? = nil, closeCode: UInt16 = CloseCode.normal.rawValue) {
         switch forceTimeout {
         case .some(let seconds) where seconds > 0:
             callbackQueue.asyncAfter(deadline: DispatchTime.now() + Double(Int64(seconds * Double(NSEC_PER_SEC))) / Double(NSEC_PER_SEC)) { [weak self] in
@@ -221,7 +221,7 @@ public class WebSocket : NSObject, StreamDelegate {
      - parameter str:        The string to write.
      - parameter completion: The (optional) completion handler.
      */
-    public func write(string: String, completion: (() -> ())? = nil) {
+    open func write(string: String, completion: (() -> ())? = nil) {
         guard isConnected else { return }
         dequeueWrite(string.data(using: String.Encoding.utf8)!, code: .textFrame, writeCompletion: completion)
     }
@@ -234,7 +234,7 @@ public class WebSocket : NSObject, StreamDelegate {
      - parameter data:       The data to write.
      - parameter completion: The (optional) completion handler.
      */
-    public func write(data: Data, completion: (() -> ())? = nil) {
+    open func write(data: Data, completion: (() -> ())? = nil) {
         guard isConnected else { return }
         dequeueWrite(data, code: .binaryFrame, writeCompletion: completion)
     }
@@ -243,7 +243,7 @@ public class WebSocket : NSObject, StreamDelegate {
      Write a ping to the websocket. This sends it as a control frame.
      Yodel a   sound  to the planet.    This sends it as an astroid. http://youtu.be/Eu5ZJELRiJ8?t=42s
      */
-    public func write(ping: Data, completion: (() -> ())? = nil) {
+    open func write(ping: Data, completion: (() -> ())? = nil) {
         guard isConnected else { return }
         dequeueWrite(ping, code: .ping, writeCompletion: completion)
     }
@@ -385,7 +385,7 @@ public class WebSocket : NSObject, StreamDelegate {
     /**
      Delegate for the stream methods. Processes incoming bytes
      */
-    public func stream(_ aStream: Stream, handle eventCode: Stream.Event) {
+    open func stream(_ aStream: Stream, handle eventCode: Stream.Event) {
         if let sec = security, !certValidated && [.hasBytesAvailable, .hasSpaceAvailable].contains(eventCode) {
             let trust = aStream.property(forKey: kCFStreamPropertySSLPeerTrust as Stream.PropertyKey) as AnyObject
             let domain = aStream.property(forKey: kCFStreamSSLPeerName as Stream.PropertyKey) as? String
